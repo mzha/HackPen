@@ -132,6 +132,10 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
             }
         }
 
+        if (numChunks > 5) {
+            Log.d("dfsd", "wgeg");
+        }
+
         data.get((int) numChunks)
                 .add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
 
@@ -139,8 +143,8 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
             numChunks++;
         }
 
-        Log.i(TAG, "Accelerometer event: " +
-                event.values[0] + ", " + event.values[1] + ", " + event.values[2]);
+//        Log.i(TAG, "Accelerometer event: " +
+//                event.values[0] + ", " + event.values[1] + ", " + event.values[2]);
     }
 
     @Override
