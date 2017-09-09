@@ -66,12 +66,23 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
 
     Chunk chunk;
 
-    Queue<Chunk> data;
+    ArrayList<Chunk> data;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "Accelerometer demo created");
+
+        data = new ArrayList<>();
+        chunkAllocator = new ChunkAllocator(data, MainActivity.this, MAX_EXTRAS);
+        new Thread(chunkAllocator).start();
+
+        // Give chunk allocator some time to catch up
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCallback() {
@@ -81,10 +92,6 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
                     Log.i(TAG, "Accelerometer sensor connected");
                     mSensorManager.registerListener(MainActivity.this, sensor,
                             SensorManager.SENSOR_DELAY_FASTEST);
-                    data = new LinkedList<>();
-                    chunkAllocator = new ChunkAllocator(data, MainActivity.this, MAX_EXTRAS);
-                    chunk = new Chunk(POLLS_PER_SECOND);
-                    new Thread(chunkAllocator).start();
                 }
             }
         });
@@ -115,14 +122,12 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        chunk.add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
 
-        if (chunk.isFull()) {
-            synchronized (data) {
-                data.add(chunk);
-            }
+        data.get((int) numChunks)
+                .add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
+
+        if (data.get((int) numChunks).isFull()) {
             numChunks++;
-            chunk = new Chunk(POLLS_PER_SECOND);
         }
 
         Log.i(TAG, "Accelerometer event: " +
