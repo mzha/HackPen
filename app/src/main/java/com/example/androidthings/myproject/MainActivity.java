@@ -52,7 +52,7 @@ import java.util.ArrayList;
  */
 public class MainActivity extends Activity implements SensorEventListener {
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int POLLS_PER_SECOND = 125;
+    public static final int POLLS_PER_SECOND = 125;
 
     private Mma7660FcAccelerometerDriver mAccelerometerDriver;
     private SensorManager mSensorManager;
