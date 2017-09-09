@@ -16,6 +16,7 @@
 
 package com.example.androidthings.myproject;
 
+
 /*
  * Copyright 2016, The Android Open Source Project
  *
@@ -40,6 +41,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import com.example.androidthings.myproject.Logging.ChunkAllocator;
 import com.example.androidthings.myproject.Logging.ChunkTracker;
@@ -47,8 +50,10 @@ import com.google.android.things.contrib.driver.mma7660fc.Mma7660FcAccelerometer
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Calendar;
 
 /**
  * MainActivity is a sample activity that use an Accelerometer driver to
@@ -64,6 +69,7 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
     private ChunkAllocator chunkAllocator;
     private long numChunks = 0;
 
+    boolean logging = false;
     Chunk chunk;
 
     ArrayList<Chunk> data;
@@ -71,6 +77,8 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
         Log.i(TAG, "Accelerometer demo created");
 
         data = new ArrayList<>();
@@ -102,6 +110,24 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
         } catch (IOException e) {
             Log.e(TAG, "Error initializing accelerometer driver: ", e);
         }
+
+        ((Button)findViewById(R.id.button)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (logging) {
+                    logging = false;
+                    //STOP LOGGING
+                    Log.i(TAG, "logging off");
+                    Log.i(TAG, "Data size: " + data.size());
+                    Log.i(TAG, "Num Chunks: " + numChunks);
+                } else {
+                    logging = true;
+                    //LOG SHIT HERE
+                    Log.i(TAG, "logging on");
+                    Log.i(TAG, "Num chunks: " + numChunks);
+                }
+            }
+        });
     }
 
     @Override
@@ -132,19 +158,17 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
             }
         }
 
-        if (numChunks > 5) {
-            Log.d("dfsd", "wgeg");
+
+        if (logging) {
+            data.get((int) numChunks)
+                    .add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
+
+            if (data.get((int) numChunks).isFull()) {
+                numChunks++;
+//                Log.i(TAG, "New Chunk Created");
+            }
+
         }
-
-        data.get((int) numChunks)
-                .add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
-
-        if (data.get((int) numChunks).isFull()) {
-            numChunks++;
-        }
-
-//        Log.i(TAG, "Accelerometer event: " +
-//                event.values[0] + ", " + event.values[1] + ", " + event.values[2]);
     }
 
     @Override
