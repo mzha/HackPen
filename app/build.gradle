@@ -34,7 +34,6 @@ dependencies {
     compile 'com.google.code.findbugs:jsr305:2.0.1'
     provided 'com.google.android.things:androidthings:0.4-devpreview'
     compile 'com.googlecode.objectify:objectify:5.0.3'
-    compile project(path: ':backend', configuration: 'android-endpoints')
 }
 
 repositories {
