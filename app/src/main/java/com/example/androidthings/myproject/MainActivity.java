@@ -41,25 +41,32 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.example.androidthings.myproject.Logging.ChunkAllocator;
+import com.example.androidthings.myproject.Logging.ChunkTracker;
 import com.google.android.things.contrib.driver.mma7660fc.Mma7660FcAccelerometerDriver;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * MainActivity is a sample activity that use an Accelerometer driver to
  * read data from a Grove accelerator and log them.
  */
-public class MainActivity extends Activity implements SensorEventListener {
+public class MainActivity extends Activity implements SensorEventListener, ChunkTracker {
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int MAX_EXTRAS = 50;
     public static final int POLLS_PER_SECOND = 125;
 
     private Mma7660FcAccelerometerDriver mAccelerometerDriver;
     private SensorManager mSensorManager;
+    private ChunkAllocator chunkAllocator;
+    private long numChunks = 0;
 
     Chunk chunk;
 
-    ArrayList<Chunk> data;
+    Queue<Chunk> data;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,8 +81,10 @@ public class MainActivity extends Activity implements SensorEventListener {
                     Log.i(TAG, "Accelerometer sensor connected");
                     mSensorManager.registerListener(MainActivity.this, sensor,
                             SensorManager.SENSOR_DELAY_FASTEST);
-                    data = new ArrayList<>();
+                    data = new LinkedList<>();
+                    chunkAllocator = new ChunkAllocator(data, MainActivity.this, MAX_EXTRAS);
                     chunk = new Chunk(POLLS_PER_SECOND);
+                    new Thread(chunkAllocator).start();
                 }
             }
         });
@@ -109,7 +118,10 @@ public class MainActivity extends Activity implements SensorEventListener {
         chunk.add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
 
         if (chunk.isFull()) {
-            data.add(chunk);
+            synchronized (data) {
+                data.add(chunk);
+            }
+            numChunks++;
             chunk = new Chunk(POLLS_PER_SECOND);
         }
 
@@ -120,5 +132,10 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         Log.i(TAG, "Accelerometer accuracy changed: " + accuracy);
+    }
+
+    @Override
+    public long getNumChunks() {
+        return numChunks;
     }
 }

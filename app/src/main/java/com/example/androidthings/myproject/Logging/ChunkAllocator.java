@@ -35,6 +35,7 @@ public class ChunkAllocator implements Runnable {
         while (!stopped) {
             if (shouldAllocate()) {
                 synchronized (data) {
+                    Log.d("logger", "Chunk allocated");
                     data.add(new Chunk(MainActivity.POLLS_PER_SECOND));
                 }
             } else {
