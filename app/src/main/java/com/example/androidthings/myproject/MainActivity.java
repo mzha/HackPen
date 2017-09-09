@@ -44,6 +44,7 @@ import android.util.Log;
 import com.google.android.things.contrib.driver.mma7660fc.Mma7660FcAccelerometerDriver;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * MainActivity is a sample activity that use an Accelerometer driver to
@@ -51,9 +52,14 @@ import java.io.IOException;
  */
 public class MainActivity extends Activity implements SensorEventListener {
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int POLLS_PER_SECOND = 125;
 
     private Mma7660FcAccelerometerDriver mAccelerometerDriver;
     private SensorManager mSensorManager;
+
+    Chunk chunk;
+
+    ArrayList<Chunk> data;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -67,7 +73,9 @@ public class MainActivity extends Activity implements SensorEventListener {
                 if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
                     Log.i(TAG, "Accelerometer sensor connected");
                     mSensorManager.registerListener(MainActivity.this, sensor,
-                            SensorManager.SENSOR_DELAY_NORMAL);
+                            SensorManager.SENSOR_DELAY_FASTEST);
+                    data = new ArrayList<>();
+                    chunk = new Chunk(POLLS_PER_SECOND);
                 }
             }
         });
@@ -98,6 +106,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        chunk.add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
+
+        if (chunk.isFull()) {
+            data.add(chunk);
+            chunk = new Chunk(POLLS_PER_SECOND);
+        }
+
         Log.i(TAG, "Accelerometer event: " +
                 event.values[0] + ", " + event.values[1] + ", " + event.values[2]);
     }
