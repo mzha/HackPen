@@ -123,6 +123,15 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
     @Override
     public void onSensorChanged(SensorEvent event) {
 
+        // This should never get triggered IRL.  But if it does, better to hiccup than crash
+        if (data.get((int) numChunks) == null) {
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         data.get((int) numChunks)
                 .add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
 
