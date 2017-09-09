@@ -39,24 +39,33 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.example.androidthings.myproject.Logging.ChunkAllocator;
 import com.example.androidthings.myproject.Logging.ChunkTracker;
+import com.example.androidthings.myproject.Logging.ChunkUploader;
 import com.google.android.things.contrib.driver.mma7660fc.Mma7660FcAccelerometerDriver;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
+
+import com.google.android.things.contrib.driver.pwmspeaker.Speaker;
 
 /**
  * MainActivity is a sample activity that use an Accelerometer driver to
  * read data from a Grove accelerator and log them.
  */
 public class MainActivity extends Activity implements SensorEventListener, ChunkTracker {
+    private static final long PLAYBACK_NOTE_DELAY = 80L;
+
+    private Speaker mSpeaker;
+    private HandlerThread mHandlerThread;
+    private Handler mHandler;
+
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int MAX_EXTRAS = 50;
     public static final int POLLS_PER_SECOND = 125;
@@ -64,6 +73,7 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
     private Mma7660FcAccelerometerDriver mAccelerometerDriver;
     private SensorManager mSensorManager;
     private ChunkAllocator chunkAllocator;
+    private ChunkUploader chunkUploader;
     private long numChunks = 0;
 
     boolean logging = false;
@@ -81,6 +91,9 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
         data = new ArrayList<>();
         chunkAllocator = new ChunkAllocator(data, MainActivity.this, MAX_EXTRAS);
         new Thread(chunkAllocator).start();
+
+        chunkUploader = new ChunkUploader(data);
+        new Thread(chunkUploader).start();
 
         // Give chunk allocator some time to catch up
         try {
@@ -108,12 +121,26 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
             Log.e(TAG, "Error initializing accelerometer driver: ", e);
         }
 
+        try {
+            mSpeaker = new Speaker("PWM2");
+            mSpeaker.stop(); // in case the PWM pin was enabled already
+        } catch (IOException e) {
+            Log.e(TAG, "Error initializing speaker");
+            return; // don't initilize the handler
+        }
+
+        mHandlerThread = new HandlerThread("pwm-playback");
+        mHandlerThread.start();
+        mHandler = new Handler(mHandlerThread.getLooper());
+        mHandler.post(mPlaybackRunnable);
+
         ((Button)findViewById(R.id.button)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (logging) {
                     logging = false;
                     //STOP LOGGING
+                    mPlaybackRunnable.run();
                 } else {
                     logging = true;
                     //LOG SHIT HERE
@@ -136,6 +163,21 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
                 mAccelerometerDriver = null;
             }
         }
+        if (mHandler != null) {
+            mHandler.removeCallbacks(mPlaybackRunnable);
+            mHandlerThread.quitSafely();
+        }
+        if (mSpeaker != null) {
+            try {
+                mSpeaker.stop();
+                mSpeaker.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error closing speaker", e);
+            } finally {
+                mSpeaker = null;
+            }
+        }
+
     }
 
     @Override
@@ -174,4 +216,33 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
     public long getNumChunks() {
         return numChunks;
     }
+
+    private Runnable mPlaybackRunnable = new Runnable() {
+
+        private int index = 0;
+
+        @Override
+        public void run() {
+            if (mSpeaker == null) {
+                return;
+            }
+
+            try {
+                if (index == MusicNotes.DRAMATIC_THEME.length) {
+                    // reached the end
+                    mSpeaker.stop();
+                } else {
+                    double note = MusicNotes.DRAMATIC_THEME[index++];
+                    if (note > 0) {
+                        mSpeaker.play(note);
+                    } else {
+                        mSpeaker.stop();
+                    }
+                    mHandler.postDelayed(this, PLAYBACK_NOTE_DELAY);
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "Error playing speaker", e);
+            }
+        }
+    };
 }
