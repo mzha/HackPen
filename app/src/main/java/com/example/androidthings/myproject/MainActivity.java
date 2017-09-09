@@ -40,6 +40,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import com.example.androidthings.myproject.Logging.ChunkAllocator;
 import com.example.androidthings.myproject.Logging.ChunkTracker;
@@ -64,6 +66,7 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
     private ChunkAllocator chunkAllocator;
     private long numChunks = 0;
 
+    boolean logging = false;
     Chunk chunk;
 
     ArrayList<Chunk> data;
@@ -71,6 +74,8 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
         Log.i(TAG, "Accelerometer demo created");
 
         data = new ArrayList<>();
@@ -102,6 +107,19 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
         } catch (IOException e) {
             Log.e(TAG, "Error initializing accelerometer driver: ", e);
         }
+
+        ((Button)findViewById(R.id.button)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (logging) {
+                    logging = false;
+                    //STOP LOGGING
+                } else {
+                    logging = true;
+                    //LOG SHIT HERE
+                }
+            }
+        });
     }
 
     @Override
