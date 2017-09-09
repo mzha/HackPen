@@ -7,6 +7,10 @@
             <param-name>services</param-name>
             <param-value>com.ngnl.hackpen.myapplication.backend.MyEndpoint</param-value>
         </init-param>
+        <init-param>
+            <param-name>add</param-name>
+            <param-value>com.ngnl.hackpen.myapplication.backend.AddDataChunk</param-value>
+        </init-param>
     </servlet>
     <servlet-mapping>
         <servlet-name>SystemServiceServlet</servlet-name>
