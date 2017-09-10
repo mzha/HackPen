@@ -69,7 +69,7 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int MAX_EXTRAS = 50;
-    public static final int POLLS_PER_SECOND = 125;
+    public static final int POLLS_PER_SECOND = 60;
 
     private Mma7660FcAccelerometerDriver mAccelerometerDriver;
     private SensorManager mSensorManager;
@@ -77,7 +77,7 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
     private ChunkUploader chunkUploader;
     private long numChunks = 0;
 
-    boolean logging = false;
+    boolean logging = true;
     Chunk chunk;
 
     ArrayList<Chunk> data;

@@ -46,31 +46,39 @@ public class ChunkUploader implements Runnable {
         // increase chunk size
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
+        Log.i("fake", "test");
+
         while (!stopped) {
             // if this chunk is full
+            Log.i("fake", "iterating. index is "+index +"  data.size is "+data.size());
             if (data.size() > 0 && data.get(index).timestamps[MainActivity.POLLS_PER_SECOND-1] > 0) {
-                try {
-                    OkHttpClient client = new OkHttpClient();
-
-                    MediaType mediaType = MediaType.parse("application/json");
-                    RequestBody body = RequestBody.create(mediaType, "{\n\t\"timestamps\": " + Arrays.toString(data.get(index).timestamps) +
-                            ",\n\t\"xs\": " + Arrays.toString(data.get(index).xs) +
-                            ",\n\t\"ys\": " + Arrays.toString(data.get(index).ys) +
-                            ",\n\t\"zs\": " + Arrays.toString(data.get(index).zs) + "\n}");
-                    Request request = new Request.Builder()
-                            .url("https://hackpen-179409.appspot.com/api/uploadChunk")
-                            .post(body)
-                            .addHeader("content-type", "application/json")
-                            .addHeader("cache-control", "no-cache")
-                            .addHeader("postman-token", "29690783-ed02-06ad-b892-a56d7332851e")
-                            .build();
-
-                    Response response = client.newCall(request).execute();
-                    System.out.println("YOYOYO " + response.body().toString());
-                } catch (Exception e) {
-                    System.out.println("YOYOYO " + e);
-                }
+                Log.i("fakewifi", "{\"timestamps\": " + Arrays.toString(data.get(index).timestamps) +
+                            ",\"xs\": " + Arrays.toString(data.get(index).xs) +
+                            ",\"ys\": " + Arrays.toString(data.get(index).ys) +
+                            ",\"zs\": " + Arrays.toString(data.get(index).zs) + "}");
                 index++;
+//                try {
+//                    OkHttpClient client = new OkHttpClient();
+//
+//                    MediaType mediaType = MediaType.parse("application/json");
+//                    RequestBody body = RequestBody.create(mediaType, "{\n\t\"timestamps\": " + Arrays.toString(data.get(index).timestamps) +
+//                            ",\n\t\"xs\": " + Arrays.toString(data.get(index).xs) +
+//                            ",\n\t\"ys\": " + Arrays.toString(data.get(index).ys) +
+//                            ",\n\t\"zs\": " + Arrays.toString(data.get(index).zs) + "\n}");
+//                    Request request = new Request.Builder()
+//                            .url("https://hackpen-179409.appspot.com/api/uploadChunk")
+//                            .post(body)
+//                            .addHeader("content-type", "application/json")
+//                            .addHeader("cache-control", "no-cache")
+//                            .addHeader("postman-token", "29690783-ed02-06ad-b892-a56d7332851e")
+//                            .build();
+//
+//                    Response response = client.newCall(request).execute();
+//                    System.out.println("YOYOYO " + response.body().toString());
+//                } catch (Exception e) {
+//                    System.out.println("YOYOYO " + e);
+//                }
+//                index++;
 
             } else {
                 try {

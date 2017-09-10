@@ -36,11 +36,11 @@ public class ChunkAllocator implements Runnable {
         while (!stopped) {
             if (shouldAllocate()) {
                 synchronized (data) {
-                    Log.d("logger", "Chunk allocated.  Chunks: "+chunkTracker.getNumChunks());
+                    //Log.d("logger", "Chunk allocated.  Chunks: "+chunkTracker.getNumChunks());
                     data.add(new Chunk(MainActivity.POLLS_PER_SECOND));
                 }
             } else {
-                Log.d("logger", "waiting");
+                //Log.d("logger", "waiting");
                 try {
                     Thread.sleep(10); // give the main thread time to catch up
                 } catch (InterruptedException e) {
@@ -56,8 +56,8 @@ public class ChunkAllocator implements Runnable {
     }
 
     private boolean shouldAllocate() {
-        if (data.size() <= chunkTracker.getNumChunks() + warningThreshold)
-            Log.w("logger", "WARNING: main thread catching up.  numChunks = "+ chunkTracker.getNumChunks() + " ; size = " + data.size());
+        //if (data.size() <= chunkTracker.getNumChunks() + warningThreshold)
+            //Log.w("logger", "WARNING: main thread catching up.  numChunks = "+ chunkTracker.getNumChunks() + " ; size = " + data.size());
 
         // Check that difference between allocated space and utilized space is less than extras
         return data.size() - chunkTracker.getNumChunks() < extras;
