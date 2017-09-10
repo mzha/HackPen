@@ -6,8 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "listen": "node index.js",
-    "start": "adb logcat | grep fakewifi | node index.js"
+    "start": "adb logcat | grep fakewifi | parallel node index.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "request": "^2.81.0"
+  }
 }
