@@ -56,6 +56,7 @@ public class ChunkUploader implements Runnable {
                             ",\"xs\": " + Arrays.toString(data.get(index).xs) +
                             ",\"ys\": " + Arrays.toString(data.get(index).ys) +
                             ",\"zs\": " + Arrays.toString(data.get(index).zs) + "}");
+
                 index++;
 //                try {
 //                    OkHttpClient client = new OkHttpClient();

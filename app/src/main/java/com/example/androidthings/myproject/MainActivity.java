@@ -55,30 +55,47 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import com.google.android.things.contrib.driver.pwmspeaker.Speaker;
+import com.google.android.things.pio.Gpio;
+import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.Pwm;
 
 /**
  * MainActivity is a sample activity that use an Accelerometer driver to
  * read data from a Grove accelerator and log them.
  */
 public class MainActivity extends Activity implements SensorEventListener, ChunkTracker {
-    private static final long PLAYBACK_NOTE_DELAY = 80L;
-
-    private Speaker mSpeaker;
-    private HandlerThread mHandlerThread;
-    private Handler mHandler;
-
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int MAX_EXTRAS = 50;
     public static final int POLLS_PER_SECOND = 60;
+    private static final double TILT_THRESHOLD = 5;
+    private static final double SPEED_THRESHOLD = 0.3;
 
     private Mma7660FcAccelerometerDriver mAccelerometerDriver;
+    private Gpio redGpio1;
+    private Gpio redGpio2;
+    private Gpio greenGpio2;
+    private Gpio greenGpio1;
+//    private Pwm red;
+//    private Pwm green;
     private SensorManager mSensorManager;
     private ChunkAllocator chunkAllocator;
     private ChunkUploader chunkUploader;
     private long numChunks = 0;
 
-    boolean logging = true;
-    Chunk chunk;
+    private long points = 0;
+    private long total = 0;
+
+    private float baseX = 0;
+    private float baseY = 0;
+    private float baseZ = 0;
+
+    private float lastX = 0;
+    private float lastY = 0;
+    private float lastZ = 0;
+    private long lastTime = 0;
+
+    boolean logging = false;
+    boolean good = true;
 
     ArrayList<Chunk> data;
 
@@ -103,6 +120,33 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
             e.printStackTrace();
         }
 
+        PeripheralManagerService pioService = new PeripheralManagerService();
+        try {
+            Log.i(TAG, "Configuring GPIO pins");
+            redGpio1 = pioService.openGpio("GPIO_34");
+            redGpio1.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+            redGpio1.setActiveType(Gpio.ACTIVE_HIGH);
+//            redGpio2 = pioService.openGpio("GPIO_33");
+//            redGpio2.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+//            redGpio2.setActiveType(Gpio.ACTIVE_HIGH);
+
+            greenGpio1 = pioService.openGpio("GPIO_32");
+            greenGpio1.setActiveType(Gpio.ACTIVE_HIGH);
+            greenGpio1.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+//            greenGpio2 = pioService.openGpio("GPIO_37");
+//            greenGpio2.setActiveType(Gpio.ACTIVE_HIGH);
+//            greenGpio2.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+
+//            red = pioService.openPwm("PWM1");
+//            green = pioService.openPwm("PWM2");
+//            red.setPwmFrequencyHz(120);
+//            green.setPwmFrequencyHz(120);
+//            red.setEnabled(true);
+//            green.setEnabled(true);
+        } catch (IOException e) {
+            Log.e(TAG, "Error configuring GPIO pins", e);
+        }
+
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCallback() {
             @Override
@@ -122,37 +166,52 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
             Log.e(TAG, "Error initializing accelerometer driver: ", e);
         }
 
-        try {
-            mSpeaker = new Speaker("PWM2");
-            mSpeaker.stop(); // in case the PWM pin was enabled already
-        } catch (IOException e) {
-            Log.e(TAG, "Error initializing speaker");
-            return; // don't initilize the handler
-        }
-
-        mHandlerThread = new HandlerThread("pwm-playback");
-        mHandlerThread.start();
-        mHandler = new Handler(mHandlerThread.getLooper());
-        mHandler.post(mPlaybackRunnable);
-
         ((Button)findViewById(R.id.button)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (logging) {
+                    double score = points / (total + 0.0);
+                    score *= 100;
                     logging = false;
-                    //STOP LOGGING
-                    mPlaybackRunnable.run();
+                    baseX = 0;
+                    baseY = 0;
+                    baseZ = 0;
+                    lastX = 0;
+                    lastY = 0;
+                    lastZ = 0;
+                    lastTime = 0;
+                    points = 0;
+                    total = 0;
+                    good = true;
+
+                    System.out.println("YOUR SCORE WAS " + score);
+
+                    setLights(false, false);
                     Log.i(TAG, "logging off");
                     Log.i(TAG, "Data size: " + data.size());
                     Log.i(TAG, "Num Chunks: " + numChunks);
                 } else {
                     logging = true;
-                    //LOG SHIT HERE
+                    setLights(false, true);
+
                     Log.i(TAG, "logging on");
                     Log.i(TAG, "Num chunks: " + numChunks);
                 }
             }
         });
+    }
+
+    private void setLights(boolean value1, boolean value2) {
+        try {
+            redGpio1.setValue(value1);
+//            redGpio2.setValue(value1);
+            greenGpio1.setValue(value2);
+//            greenGpio2.setValue(value2);
+//            red.setPwmDutyCycle((value1) ? 100 : 0);
+//            green.setPwmDutyCycle((value2) ? 100 : 0);
+        } catch (IOException e) {
+            Log.e(TAG, "Error updating GPIO value", e);
+        }
     }
 
     @Override
@@ -169,21 +228,6 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
                 mAccelerometerDriver = null;
             }
         }
-        if (mHandler != null) {
-            mHandler.removeCallbacks(mPlaybackRunnable);
-            mHandlerThread.quitSafely();
-        }
-        if (mSpeaker != null) {
-            try {
-                mSpeaker.stop();
-                mSpeaker.close();
-            } catch (IOException e) {
-                Log.e(TAG, "Error closing speaker", e);
-            } finally {
-                mSpeaker = null;
-            }
-        }
-
     }
 
     @Override
@@ -200,6 +244,45 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
 
 
         if (logging) {
+            if (baseX == 0 && baseY == 0 && baseZ == 0) {
+                baseX = event.values[0];
+                baseY = event.values[1];
+                baseZ = event.values[2];
+
+                lastX = baseX;
+                lastY = baseY;
+                lastZ = baseZ;
+                lastTime = System.currentTimeMillis();
+            } else {
+                double velocity = Math.sqrt(Math.pow(lastX - event.values[0], 2) +
+                        Math.pow(lastY - event.values[1], 2) +
+                        Math.pow(lastZ - event.values[2], 2)) / (System.currentTimeMillis() - lastTime);
+
+                double orientation = Math.abs((baseX - event.values[0]) +
+                        (baseY - event.values[1]) +
+                        (baseZ - event.values[2]));
+
+                lastX = event.values[0];
+                lastY = event.values[1];
+                lastZ = event.values[2];
+                lastTime = System.currentTimeMillis();
+
+                System.out.println("orientation: " + orientation + ", velocity: " + velocity);
+
+                if (orientation > TILT_THRESHOLD || velocity > SPEED_THRESHOLD) {
+                    if (good) {
+                        setLights(true, false);
+                        good = false;
+                    }
+                } else {
+                    if (!good) {
+                        setLights(false, true);
+                        good = true;
+                        points++;
+                    }
+                }
+                total++;
+            }
             data.get((int) numChunks)
                     .add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
 
@@ -220,33 +303,4 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
     public long getNumChunks() {
         return numChunks;
     }
-
-    private Runnable mPlaybackRunnable = new Runnable() {
-
-        private int index = 0;
-
-        @Override
-        public void run() {
-            if (mSpeaker == null) {
-                return;
-            }
-
-            try {
-                if (index == MusicNotes.DRAMATIC_THEME.length) {
-                    // reached the end
-                    mSpeaker.stop();
-                } else {
-                    double note = MusicNotes.DRAMATIC_THEME[index++];
-                    if (note > 0) {
-                        mSpeaker.play(note);
-                    } else {
-                        mSpeaker.stop();
-                    }
-                    mHandler.postDelayed(this, PLAYBACK_NOTE_DELAY);
-                }
-            } catch (IOException e) {
-                Log.e(TAG, "Error playing speaker", e);
-            }
-        }
-    };
 }
