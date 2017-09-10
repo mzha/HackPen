@@ -14,6 +14,10 @@ bin/
 gen/
 out/
 
+#
+node_modules/
+shitserver/node_modules/
+
 # Gradle files
 .gradle/
 build/
@@ -38,6 +42,9 @@ captures/
 *.iml
 *.iws
 .idea/
+
+# Tensorflow
+ml/lib/python2.7/site-packages/
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
