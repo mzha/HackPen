@@ -16,6 +16,7 @@
 
 package com.example.androidthings.myproject;
 
+
 /*
  * Copyright 2016, The Android Open Source Project
  *
@@ -141,9 +142,14 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
                     logging = false;
                     //STOP LOGGING
                     mPlaybackRunnable.run();
+                    Log.i(TAG, "logging off");
+                    Log.i(TAG, "Data size: " + data.size());
+                    Log.i(TAG, "Num Chunks: " + numChunks);
                 } else {
                     logging = true;
                     //LOG SHIT HERE
+                    Log.i(TAG, "logging on");
+                    Log.i(TAG, "Num chunks: " + numChunks);
                 }
             }
         });
@@ -192,19 +198,17 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
             }
         }
 
-        if (numChunks > 5) {
-            Log.d("dfsd", "wgeg");
+
+        if (logging) {
+            data.get((int) numChunks)
+                    .add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
+
+            if (data.get((int) numChunks).isFull()) {
+                numChunks++;
+//                Log.i(TAG, "New Chunk Created");
+            }
+
         }
-
-        data.get((int) numChunks)
-                .add(System.currentTimeMillis(), event.values[0], event.values[1], event.values[2]);
-
-        if (data.get((int) numChunks).isFull()) {
-            numChunks++;
-        }
-
-//        Log.i(TAG, "Accelerometer event: " +
-//                event.values[0] + ", " + event.values[1] + ", " + event.values[2]);
     }
 
     @Override
