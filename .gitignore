@@ -45,6 +45,7 @@ captures/
 
 # Tensorflow
 ml/lib/python2.7/site-packages/
+ml/lib/python2.7/site-packages/tensorflow/python/_pywrap_tensorflow_internal.so
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
