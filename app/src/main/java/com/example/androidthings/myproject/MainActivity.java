@@ -35,6 +35,7 @@ package com.example.androidthings.myproject;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -53,6 +54,7 @@ import com.google.android.things.contrib.driver.mma7660fc.Mma7660FcAccelerometer
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.google.android.things.contrib.driver.pwmspeaker.Speaker;
 import com.google.android.things.pio.Gpio;
@@ -190,12 +192,16 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
                     Log.i(TAG, "logging off");
                     Log.i(TAG, "Data size: " + data.size());
                     Log.i(TAG, "Num Chunks: " + numChunks);
+                    ((Button)findViewById(R.id.button)).setBackgroundColor(Color.parseColor("#1edb4d"));
+                    ((Button)findViewById(R.id.button)).setText("Start");
                 } else {
                     logging = true;
                     setLights(false, true);
 
                     Log.i(TAG, "logging on");
                     Log.i(TAG, "Num chunks: " + numChunks);
+                    ((Button)findViewById(R.id.button)).setBackgroundColor(Color.parseColor("#d81c1c"));
+                    ((Button)findViewById(R.id.button)).setText("Stop");
                 }
             }
         });
@@ -278,8 +284,8 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
                     if (!good) {
                         setLights(false, true);
                         good = true;
-                        points++;
                     }
+                    points++;
                 }
                 total++;
             }
@@ -288,6 +294,8 @@ public class MainActivity extends Activity implements SensorEventListener, Chunk
 
             if (data.get((int) numChunks).isFull()) {
                 numChunks++;
+                Log.i("fakewifi2", "{\"score\": " + points +
+                        ",\"total\": " + total + "}");
 //                Log.i(TAG, "New Chunk Created");
             }
 
