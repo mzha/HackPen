@@ -66,9 +66,7 @@ public class ChunkUploader implements Runnable {
                             .build();
 
                     Response response = client.newCall(request).execute();
-                    System.out.println("YOYOYO " + response.body().toString());
                 } catch (Exception e) {
-                    System.out.println("YOYOYO " + e);
                 }
                 index++;
 
