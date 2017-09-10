@@ -52,10 +52,10 @@ public class ChunkUploader implements Runnable {
             // if this chunk is full
             Log.i("fake", "iterating. index is "+index +"  data.size is "+data.size());
             if (data.size() > 0 && data.get(index).timestamps[MainActivity.POLLS_PER_SECOND-1] > 0) {
-                Log.i("fakewifi", "{\"timestamps\": " + Arrays.toString(data.get(index).timestamps) +
-                            ",\"xs\": " + Arrays.toString(data.get(index).xs) +
-                            ",\"ys\": " + Arrays.toString(data.get(index).ys) +
-                            ",\"zs\": " + Arrays.toString(data.get(index).zs) + "}");
+//                Log.i("fakewifi", "{\"timestamps\": " + Arrays.toString(data.get(index).timestamps) +
+//                            ",\"xs\": " + Arrays.toString(data.get(index).xs) +
+//                            ",\"ys\": " + Arrays.toString(data.get(index).ys) +
+//                            ",\"zs\": " + Arrays.toString(data.get(index).zs) + "}");
 
                 index++;
 //                try {

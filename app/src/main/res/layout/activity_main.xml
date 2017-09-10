@@ -2,15 +2,26 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <Button
-        android:id="@+id/button"
+    <TextView
+        android:id="@+id/score"
         android:layout_width="match_parent"
-        android:layout_height="200px"
-        android:text="Start"
-        android:textSize="40sp"
+        android:layout_height="match_parent"
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
-        android:background="#1edb4d"
-        />
+        android:gravity="center"
+        android:text="Tap to measure"
+        android:background="#000000"
+        android:textSize="60sp"
+        android:textStyle="bold"/>
+    <!--<Button-->
+        <!--android:id="@+id/button"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="200px"-->
+        <!--android:text="Start"-->
+        <!--android:textSize="40sp"-->
+        <!--android:textAllCaps="false"-->
+        <!--android:textColor="#FFFFFF"-->
+        <!--android:background="#1edb4d"-->
+        <!--/>-->
 
 </LinearLayout>
